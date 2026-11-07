@@ -1,0 +1,173 @@
+{
+  "captured_at_utc": "2026-11-07T09:22:40.647551+00:00",
+  "n8n_version": "2.37.10",
+  "postgres_version": "16.15 (Debian 16.15-1.pgdg12+2)",
+  "adapter": {
+    "running": true,
+    "user": "65534:65534",
+    "readonly_rootfs": true,
+    "cap_drop": [
+      "ALL"
+    ],
+    "security_options": [
+      "no-new-privileges"
+    ],
+    "published_ports": {},
+    "networks": [
+      "n8n_backend",
+      "proxy"
+    ],
+    "memory_limit_bytes": 100663296,
+    "image": "python:3.12-alpine"
+  },
+  "permissions": {
+    "runtime.json": "0o600",
+    "auto01-private.dump": "0o600"
+  },
+  "adapter_code_sha256": "6f02d7958cc92f6646db437511005bbe5b0d229f27ade4d47e71b711a0e0fefb",
+  "role": {
+    "rolname": "auto01",
+    "rolsuper": false,
+    "rolcreatedb": false,
+    "rolcreaterole": false,
+    "rolreplication": false
+  },
+  "access_to_n8n_tables": {
+    "read_credentials": false,
+    "modify_workflows": false
+  },
+  "workflows": [
+    {
+      "id": "auto01Errors01",
+      "name": "LeadFlow · Инциденты",
+      "active": true,
+      "settings": {
+        "executionOrder": "v1",
+        "saveDataSuccessExecution": "none",
+        "saveDataErrorExecution": "none",
+        "saveManualExecutions": false
+      },
+      "node_count": 4
+    },
+    {
+      "id": "auto01LeadFlow01",
+      "name": "LeadFlow · Приём заявок",
+      "active": true,
+      "settings": {
+        "executionOrder": "v1",
+        "timezone": "Europe/Berlin",
+        "saveDataErrorExecution": "none",
+        "saveDataSuccessExecution": "none",
+        "saveManualExecutions": false,
+        "errorWorkflow": "auto01Errors01"
+      },
+      "node_count": 22
+    },
+    {
+      "id": "auto01Report01",
+      "name": "LeadFlow · Ежедневный отчёт",
+      "active": true,
+      "settings": {
+        "executionOrder": "v1",
+        "timezone": "Europe/Berlin",
+        "errorWorkflow": "auto01Errors01",
+        "saveDataSuccessExecution": "none",
+        "saveDataErrorExecution": "none",
+        "saveManualExecutions": false
+      },
+      "node_count": 5
+    }
+  ],
+  "inbound_nodes": [
+    {
+      "name": "01 Входящая заявка",
+      "type": "n8n-nodes-base.webhook",
+      "authentication": "headerAuth"
+    },
+    {
+      "name": "Учебная веб-форма",
+      "type": "n8n-nodes-base.formTrigger",
+      "authentication": null
+    }
+  ],
+  "request_states": [
+    {
+      "state": "complete",
+      "count": 9
+    },
+    {
+      "state": "crm_review",
+      "count": 3
+    }
+  ],
+  "event_types": [
+    {
+      "event": "crm_created",
+      "count": 9
+    },
+    {
+      "event": "crm_review",
+      "count": 3
+    },
+    {
+      "event": "delivery_status_corrected_from_execution_99_message_161",
+      "count": 1
+    },
+    {
+      "event": "notification_failed",
+      "count": 1
+    },
+    {
+      "event": "notification_sent",
+      "count": 8
+    }
+  ],
+  "plaintext_hook_url_matches_in_saved_executions": 0,
+  "tls_checks": [
+    {
+      "url": "https://n8n.example.com/",
+      "default_ca_verification": true,
+      "status": 200
+    },
+    {
+      "url": "https://crm.example.com/",
+      "default_ca_verification": true,
+      "status": 200
+    }
+  ],
+  "restore_verification": {
+    "requests": {
+      "source": {
+        "count": 12,
+        "checksum": "c62e90c198d7b2cddcb731b58637972b"
+      },
+      "restored": {
+        "count": 12,
+        "checksum": "c62e90c198d7b2cddcb731b58637972b"
+      },
+      "equal": true
+    },
+    "events": {
+      "source": {
+        "count": 22,
+        "checksum": "a45d5121d9496831f1cfe0126f40e816"
+      },
+      "restored": {
+        "count": 22,
+        "checksum": "a45d5121d9496831f1cfe0126f40e816"
+      },
+      "equal": true
+    },
+    "audit": {
+      "source": {
+        "count": 28,
+        "checksum": "a1f3587e00b8eba2f7b269d10c2c8b3e"
+      },
+      "restored": {
+        "count": 28,
+        "checksum": "a1f3587e00b8eba2f7b269d10c2c8b3e"
+      },
+      "equal": true
+    }
+  }
+}

@@ -1,0 +1,11 @@
+test_ambiguous_create_only_reconciles (__main__.GuardTests.test_ambiguous_create_only_reconciles) ... ok
+test_arbitrary_host_and_method_prevent_network (__main__.GuardTests.test_arbitrary_host_and_method_prevent_network) ... ok
+test_existing_deal_never_created_again (__main__.GuardTests.test_existing_deal_never_created_again) ... ok
+test_fields_cannot_be_overridden (__main__.GuardTests.test_fields_cannot_be_overridden) ... ok
+test_non_demo_email_not_created (__main__.GuardTests.test_non_demo_email_not_created) ... ok
+test_scope_guard_prevents_network (__main__.GuardTests.test_scope_guard_prevents_network) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.005s
+
+OK

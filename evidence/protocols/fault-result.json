@@ -1,0 +1,28 @@
+{
+  "request_id": "demo-fault-1794042401",
+  "unavailable": {
+    "http": 503,
+    "body": {
+      "ok": false,
+      "code": 503,
+      "request_id": "demo-fault-1794042401",
+      "state": "crm_review",
+      "error": "transport_error",
+      "formSubmittedText": "Заявка сохранена. Требуется проверка менеджера. Повторное создание сделки не запускается."
+    }
+  },
+  "repeat_after_restore": {
+    "http": 200,
+    "body": {
+      "ok": true,
+      "code": 200,
+      "duplicate": true,
+      "request_id": "demo-fault-1794042401",
+      "state": "crm_review",
+      "deal_id": null,
+      "error": "transport_error",
+      "formSubmittedText": "Заявка сохранена. Требуется проверка менеджера. Повторное создание сделки не запускается."
+    }
+  },
+  "passed": true
+}

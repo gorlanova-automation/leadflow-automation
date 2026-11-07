@@ -1,0 +1,151 @@
+{
+  "run": "demo-sec-1794042377",
+  "passed": true,
+  "tests": [
+    {
+      "test": "API без ключа",
+      "passed": true,
+      "evidence": {
+        "http": 403,
+        "body": "Authorization data is wrong!"
+      }
+    },
+    {
+      "test": "API с неправильным ключом",
+      "passed": true,
+      "evidence": {
+        "http": 403,
+        "body": "Authorization data is wrong!"
+      }
+    },
+    {
+      "test": "Отказы авторизации не создают заявку",
+      "passed": true,
+      "evidence": {
+        "before": 12,
+        "after": 12
+      }
+    },
+    {
+      "test": "С ключом запрос принят",
+      "passed": true,
+      "evidence": {
+        "http": 200,
+        "body": {
+          "ok": true,
+          "code": 200,
+          "duplicate": true,
+          "request_id": "demo-sec-1794042377",
+          "state": "complete",
+          "deal_id": "3569",
+          "error": null,
+          "formSubmittedText": "Заявка demo-sec-1794042377 обработана. Номер сделки: 3569"
+        }
+      }
+    },
+    {
+      "test": "Номер воронки из запроса игнорируется",
+      "passed": true,
+      "evidence": {
+        "category_id": 17,
+        "state": "complete",
+        "deal_id": 3569
+      }
+    },
+    {
+      "test": "Текст заявки не доступен в сохраняемых активных запусках",
+      "passed": true,
+      "evidence": {
+        "active_execution_marker_matches": 0,
+        "physical_cleanup": "Marked for deletion first; n8n pruning runs later. Not a claim of instant erasure."
+      }
+    },
+    {
+      "test": "Журнал связан с запуском и заявкой",
+      "passed": true,
+      "evidence": [
+        {
+          "execution_id": "142",
+          "request_id": "demo-sec-1794042377",
+          "event": "request_accepted",
+          "severity": "INFO",
+          "step": "claim",
+          "code": "ok",
+          "details": {}
+        },
+        {
+          "execution_id": "142",
+          "request_id": "demo-sec-1794042377",
+          "event": "crm_created",
+          "severity": "INFO",
+          "step": "crm",
+          "code": "ok",
+          "details": {}
+        },
+        {
+          "execution_id": "142",
+          "request_id": "demo-sec-1794042377",
+          "event": "notification_sent",
+          "severity": "INFO",
+          "step": "notification",
+          "code": "ok",
+          "details": {
+            "message_id": 173
+          }
+        },
+        {
+          "execution_id": "146",
+          "request_id": "demo-sec-1794042377",
+          "event": "duplicate_received",
+          "severity": "INFO",
+          "step": "claim",
+          "code": "ok",
+          "details": {}
+        }
+      ]
+    },
+    {
+      "test": "В журнале нет содержимого обращения и ключа",
+      "passed": true,
+      "evidence": {
+        "payload_and_key_matches": 0
+      }
+    },
+    {
+      "test": "Запущена изолированная проверка Error Workflow",
+      "passed": true,
+      "evidence": {
+        "http": 200,
+        "body": {
+          "message": "Workflow was started"
+        }
+      }
+    },
+    {
+      "test": "Необработанная ошибка зафиксирована и уведомление доставлено",
+      "passed": true,
+      "evidence": [
+        {
+          "execution_id": "147",
+          "event": "unhandled_error",
+          "severity": "ERROR",
+          "step": "Контролируемая ошибка",
+          "code": "workflow_failed",
+          "details": {
+            "workflow_id": "auto01ProbeError1"
+          }
+        },
+        {
+          "execution_id": "147",
+          "event": "alert_sent",
+          "severity": "INFO",
+          "step": "alert",
+          "code": "ok",
+          "details": {
+            "message_id": 175
+          }
+        }
+      ]
+    }
+  ]
+}

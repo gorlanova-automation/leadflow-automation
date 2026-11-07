@@ -1,0 +1,16 @@
+{
+  "record_id": 3559,
+  "category_id": 17,
+  "mapping": {
+    "request_id": true,
+    "name": true,
+    "email": true,
+    "message": true,
+    "source": true,
+    "destination_category": true
+  },
+  "operator_correction_via_api": true,
+  "original_title_restored": true,
+  "passed": true,
+  "method": "Controlled API update of one synthetic card; not a GUI test."
+}

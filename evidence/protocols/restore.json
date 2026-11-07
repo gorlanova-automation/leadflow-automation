@@ -1,0 +1,41 @@
+{
+  "database": "auto01_restore_check_demo",
+  "backup_bytes": 9009,
+  "rows": 12,
+  "same_request_data": true,
+  "tables": {
+    "requests": {
+      "source": {
+        "count": 12,
+        "checksum": "c62e90c198d7b2cddcb731b58637972b"
+      },
+      "restored": {
+        "count": 12,
+        "checksum": "c62e90c198d7b2cddcb731b58637972b"
+      },
+      "equal": true
+    },
+    "events": {
+      "source": {
+        "count": 22,
+        "checksum": "a45d5121d9496831f1cfe0126f40e816"
+      },
+      "restored": {
+        "count": 22,
+        "checksum": "a45d5121d9496831f1cfe0126f40e816"
+      },
+      "equal": true
+    },
+    "audit": {
+      "source": {
+        "count": 28,
+        "checksum": "a1f3587e00b8eba2f7b269d10c2c8b3e"
+      },
+      "restored": {
+        "count": 28,
+        "checksum": "a1f3587e00b8eba2f7b269d10c2c8b3e"
+      },
+      "equal": true
+    }
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "id": "auto01Errors01",
+  "name": "LeadFlow · Инциденты",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "78479077-2400-58c3-a510-e480d63fdaa6",
+      "name": "Ошибка выполнения",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "f502dfef-a290-5f4b-8596-9d9092af2cff",
+      "name": "Сообщить Елене",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        500,
+        0
+      ],
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{ 'LeadFlow: выполнение прервано.\\nWorkflow: '+$('Ошибка выполнения').item.json.workflow.name+'\\nExecution: '+$('Ошибка выполнения').item.json.execution.id+'\\nПроверьте журнал инцидентов. Автоматическое повторное создание сделки отключено.' }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "CONFIGURE_TELEGRAM",
+          "name": "Назначить свой доступ"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "5ab929bd-f4c3-5445-86f2-0d524af1f755",
+      "name": "Зафиксировать инцидент",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_POSTGRES",
+          "name": "Назначить свой доступ"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO auto01.audit(execution_id,event,severity,step,code,details)\nVALUES($1,'unhandled_error','ERROR',$2,'workflow_failed',jsonb_build_object('workflow_id',$3::text)) RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ [String($json.execution?.id||'activation'),$json.execution?.lastNodeExecuted||'activation',$json.workflow?.id||'unknown'] }}"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "bf4d7f6f-e29b-5976-a034-4e950774fc34",
+      "name": "Журнал оповещения об инциденте",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        760,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_POSTGRES",
+          "name": "Назначить свой доступ"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO auto01.audit(execution_id,event,severity,step,code,details)\nVALUES($1,CASE WHEN $2 THEN 'alert_sent' ELSE 'alert_failed' END,CASE WHEN $2 THEN 'INFO' ELSE 'ERROR' END,\n'alert',CASE WHEN $2 THEN 'ok' ELSE 'delivery_not_confirmed' END,jsonb_build_object('message_id',$3::bigint)) RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ [String($('Ошибка выполнения').item.json.execution?.id||'activation'),!!($json.ok && $json.result?.message_id),$json.result?.message_id||null] }}"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Ошибка выполнения": {
+      "main": [
+        [
+          {
+            "node": "Зафиксировать инцидент",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Зафиксировать инцидент": {
+      "main": [
+        [
+          {
+            "node": "Сообщить Елене",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сообщить Елене": {
+      "main": [
+        [
+          {
+            "node": "Журнал оповещения об инциденте",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveManualExecutions": false
+  },
+  "staticData": null,
+  "nodeGroups": [],
+  "sourceWorkflowId": null,
+  "versionMetadata": {
+    "name": "v1.1 · обработчик инцидентов",
+    "description": ""
+  }
+}

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+runtime.json
+*private*
+*.dump
+*.pem
+*.key
+ключи*
+_internal/

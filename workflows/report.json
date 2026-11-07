@@ -1,0 +1,181 @@
+{
+  "id": "auto01Report01",
+  "name": "LeadFlow · Ежедневный отчёт",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "7d76130a-8257-533f-bdae-305d9f367fa6",
+      "name": "Проверить отчёт вручную",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "fd385218-50c8-55ac-a70f-bbbdea30e38a",
+      "name": "Ежедневно в 18:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        180
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 18 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "5adeb7c8-01d2-50c1-86e8-b3000bbe1a63",
+      "name": "Итоги за 24 часа",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        260,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT count(*)::int AS total,count(*) FILTER (WHERE deal_id IS NOT NULL)::int AS created,count(*) FILTER(WHERE state='complete')::int AS complete,count(*) FILTER(WHERE state='crm_review')::int AS crm_review,count(*) FILTER(WHERE state='notification_failed')::int AS notification_failed FROM auto01.requests WHERE created_at>=now()-interval '24 hours';",
+        "options": {
+          "queryReplacement": "={{ [] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_POSTGRES",
+          "name": "Назначить свой доступ"
+        }
+      }
+    },
+    {
+      "id": "590350ba-8a63-533f-a339-3321a14af96b",
+      "name": "Отчёт Елене",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        520,
+        0
+      ],
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{ 'LeadFlow · отчёт за 24 часа\\nУникальные корректные заявки: '+$json.total+'\\nСделки созданы: '+$json.created+'\\nЗавершены с уведомлением: '+$json.complete+'\\nCRM требует проверки: '+$json.crm_review+'\\nНе доставлены уведомления: '+$json.notification_failed }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "CONFIGURE_TELEGRAM",
+          "name": "Назначить свой доступ"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "3d240c88-50d9-5714-970b-75eafc8afa7a",
+      "name": "Журнал доставки отчёта",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        780,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_POSTGRES",
+          "name": "Назначить свой доступ"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO auto01.audit(execution_id,event,severity,step,code,details)\nVALUES($1,CASE WHEN $2 THEN 'report_sent' ELSE 'report_failed' END,CASE WHEN $2 THEN 'INFO' ELSE 'ERROR' END,\n'report',CASE WHEN $2 THEN 'ok' ELSE 'delivery_not_confirmed' END,\njsonb_build_object('message_id',$3::bigint,'metrics',$4::jsonb)) RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ [String($execution.id),!!($json.ok && $json.result?.message_id),$json.result?.message_id||null,JSON.stringify($('Итоги за 24 часа').item.json)] }}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Проверить отчёт вручную": {
+      "main": [
+        [
+          {
+            "node": "Итоги за 24 часа",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ежедневно в 18:00": {
+      "main": [
+        [
+          {
+            "node": "Итоги за 24 часа",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Итоги за 24 часа": {
+      "main": [
+        [
+          {
+            "node": "Отчёт Елене",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отчёт Елене": {
+      "main": [
+        [
+          {
+            "node": "Журнал доставки отчёта",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Berlin",
+    "errorWorkflow": "auto01Errors01",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveManualExecutions": false
+  },
+  "staticData": {
+    "node:Ежедневно в 18:00": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    }
+  },
+  "nodeGroups": [],
+  "sourceWorkflowId": null,
+  "versionMetadata": {
+    "name": "v1.1 · журнал доставки",
+    "description": ""
+  }
+}

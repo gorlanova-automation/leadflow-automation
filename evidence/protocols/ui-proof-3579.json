@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-07",
+  "request_id": "demo-proof-20261107-002",
+  "deal_id": 3579,
+  "stage": "Новая",
+  "category_id": 17,
+  "submitted": {
+    "name": "Тестовая Анна",
+    "email": "anna.proof@example.com",
+    "message": "Хочу автоматизировать приём заявок и передачу данных в CRM."
+  },
+  "observed": {
+    "form_submission_confirmed": true,
+    "pipeline_card_visible": true,
+    "name_matches": true,
+    "email_matches": true,
+    "message_matches": true
+  },
+  "method": "Browser form submission and read-only inspection of the resulting Bitrix24 card. CRM screenshots exclude URL and unrelated customer data."
+}

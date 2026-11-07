@@ -1,0 +1,748 @@
+{
+  "id": "auto01LeadFlow01",
+  "name": "LeadFlow · Приём заявок",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "23e88aa7-8dbf-5c0d-b03f-676757a8b224",
+      "name": "01 Входящая заявка",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "auto01-leadflow",
+        "responseMode": "responseNode",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "webhookId": "auto01-leadflow",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CONFIGURE_WEBHOOK",
+          "name": "Назначить свой доступ"
+        }
+      }
+    },
+    {
+      "id": "92d88f21-1fff-50d6-9a8e-4f967832fc68",
+      "name": "02 Проверка полей",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Pure validation. No secrets, network requests or model-controlled fields.\nconst raw = $json.body ?? $json;\nconst text = (key, max) => typeof raw[key] === 'string' ? raw[key].trim().slice(0, max + 1) : '';\nconst data = {\n  request_id: text('request_id',80), name:text('name',80), email:text('email',160).toLowerCase(),\n  phone:text('phone',40), message:text('message',2000), source:text('source',40)||'Учебная форма',\n  demo:raw.demo===true||raw.demo==='true', category_id:17\n};\nconst errors=[];\nif(!/^[A-Za-z0-9_-]{8,80}$/.test(data.request_id)) errors.push('Номер обращения: 8–80 латинских букв, цифр, _ или -');\nif(data.name.length<2||data.name.length>80) errors.push('Имя: 2–80 символов');\nif(!/^[a-z0-9._%+-]+@example\\.com$/.test(data.email)||data.email.length>160) errors.push('Почта: только вымышленный адрес @example.com');\nif(data.phone && !/^\\+?[0-9 ()-]{6,40}$/.test(data.phone)) errors.push('Телефон: неверный формат');\nif(data.message.length<5||data.message.length>2000) errors.push('Сообщение: 5–2000 символов');\nif(data.source.length>40) errors.push('Источник: максимум 40 символов');\nif(!data.demo) errors.push('Разрешён только учебный режим');\nreturn [{json:{valid:errors.length===0,errors,data,code:errors.length?422:200}}];\n"
+      }
+    },
+    {
+      "id": "4d971b7c-e254-5336-a7e5-dfce9b64baa2",
+      "name": "03 Заявка корректна",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3defa9c1-cfb8-404a-b23c-bbfa0a993779",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "3ffa69c2-11c8-5c86-ab72-9ef7d197ca5b",
+      "name": "Ошибка в форме",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        720,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_POSTGRES",
+          "name": "Назначить свой доступ"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO auto01.audit(execution_id,request_id,event,severity,step,code)\nVALUES($1,$2,'validation_rejected','WARN','validation','invalid_fields')\nRETURNING false AS ok,422 AS code,$3::jsonb AS errors;",
+        "options": {
+          "queryReplacement": "={{ [String($execution.id), /^[A-Za-z0-9_-]{8,80}$/.test($json.data.request_id)?$json.data.request_id:null, JSON.stringify($json.errors)] }}"
+        }
+      }
+    },
+    {
+      "id": "cdb64888-1af0-5c37-b8fc-411c544e1f97",
+      "name": "Ответ 422",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({...$json, formSubmittedText: $json.state === 'complete' && $json.ok ? ('Заявка '+$json.request_id+' обработана. Номер сделки: '+$json.deal_id) : $json.state === 'processing' && $json.ok ? 'Заявка уже принята и ещё обрабатывается. Повторно отправлять её не нужно.' : $json.state === 'crm_review' || $json.state === 'notification_failed' ? 'Заявка сохранена. Требуется проверка менеджера. Повторное создание сделки не запускается.' : $json.code === 409 ? 'Этот номер обращения уже использован с другим содержимым. Проверьте данные.' : ('Проверьте поля формы: '+($json.errors||['Не удалось завершить обработку']).join('; '))}) }}",
+        "options": {
+          "responseCode": "={{ $json.code || 200 }}"
+        }
+      }
+    },
+    {
+      "id": "9000e2b1-2d39-5e5a-be2c-76b9002ee99d",
+      "name": "04 Атомарная защита от дублей",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        720,
+        -80
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH claimed AS (INSERT INTO auto01.requests(request_id,payload)\nVALUES ($1,$2::jsonb)\nON CONFLICT(request_id) DO UPDATE SET request_id=EXCLUDED.request_id\nRETURNING request_id,payload,state,deal_id,error,notified,(xmax=0) AS claimed,\n (payload=$2::jsonb) AS same_payload),\naudit AS (INSERT INTO auto01.audit(execution_id,request_id,event,severity,step,code)\nSELECT $3,request_id,CASE WHEN claimed THEN 'request_accepted' WHEN same_payload THEN 'duplicate_received' ELSE 'request_conflict' END,\nCASE WHEN same_payload THEN 'INFO' ELSE 'WARN' END,'claim',\nCASE WHEN same_payload THEN 'ok' ELSE 'request_id_conflict' END FROM claimed)\nSELECT * FROM claimed;",
+        "options": {
+          "queryReplacement": "={{ [$json.data.request_id,JSON.stringify($json.data),String($execution.id)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_POSTGRES",
+          "name": "Назначить свой доступ"
+        }
+      }
+    },
+    {
+      "id": "c812b9f3-9cf2-5b0e-9015-a60b32661427",
+      "name": "05 Обрабатываем впервые",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        -80
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7e3b2513-a216-465f-89a2-d47c376e32e1",
+              "leftValue": "={{ $json.claimed }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "de24a40e-febe-5fb2-a7a9-0e8e20da9974",
+      "name": "Повтор или конфликт",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        250
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{ok:$json.same_payload,code:$json.same_payload?200:409,duplicate:$json.same_payload,request_id:$json.request_id,state:$json.state,deal_id:$json.deal_id,error:$json.same_payload?$json.error:'request_id_conflict'}}];"
+      }
+    },
+    {
+      "id": "a113ca61-fc0d-52e3-a874-0846484a5832",
+      "name": "Ответ повторной заявке",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1440,
+        250
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({...$json, formSubmittedText: $json.state === 'complete' && $json.ok ? ('Заявка '+$json.request_id+' обработана. Номер сделки: '+$json.deal_id) : $json.state === 'processing' && $json.ok ? 'Заявка уже принята и ещё обрабатывается. Повторно отправлять её не нужно.' : $json.state === 'crm_review' || $json.state === 'notification_failed' ? 'Заявка сохранена. Требуется проверка менеджера. Повторное создание сделки не запускается.' : $json.code === 409 ? 'Этот номер обращения уже использован с другим содержимым. Проверьте данные.' : ('Проверьте поля формы: '+($json.errors||['Не удалось завершить обработку']).join('; '))}) }}",
+        "options": {
+          "responseCode": "={{ $json.code || 200 }}"
+        }
+      }
+    },
+    {
+      "id": "06da921a-5ddf-5dc6-8db1-450e5881cbc0",
+      "name": "06 Сделка только в воронке 17",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        -180
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://auto01-bridge:8080/deal/create",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "timeout": 65000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CONFIGURE_HTTPREQUEST",
+          "name": "Назначить свой доступ"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "0a213f29-5807-525b-adaf-fee9340a62a2",
+      "name": "07 CRM подтвердила сделку",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        -180
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d0276293-fbad-4ffb-8082-0dd7d3129b40",
+              "leftValue": "={{ $json.ok === true && Number.isInteger($json.deal_id) && $json.category_id === 17 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "fc8c4b70-cef5-5cbd-8f4d-35d38c32e5ed",
+      "name": "08 Сохраняем номер сделки",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1680,
+        -280
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH changed AS (UPDATE auto01.requests SET state='created',deal_id=$2,updated_at=now()\nWHERE request_id=$1 RETURNING *) , logged AS (INSERT INTO auto01.events(request_id,event)\nSELECT request_id,'crm_created' FROM changed), audit AS (INSERT INTO auto01.audit(execution_id,request_id,event,severity,step,code,details) SELECT $3,request_id,'crm_created','INFO','crm','ok','{}'::jsonb FROM changed) SELECT * FROM changed;",
+        "options": {
+          "queryReplacement": "={{ [$('04 Атомарная защита от дублей').item.json.request_id,$json.deal_id,String($execution.id)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_POSTGRES",
+          "name": "Назначить свой доступ"
+        }
+      }
+    },
+    {
+      "id": "63110ab1-3c11-5cdd-b915-adb48c94d4a5",
+      "name": "09 Уведомление Елене",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1920,
+        -280
+      ],
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{ 'LeadFlow\\nЗаявка: '+$json.request_id+'\\nСделка №'+$json.deal_id+' в воронке 17\\nhttps://crm.example.com/crm/deal/details/'+$json.deal_id+'/' }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "CONFIGURE_TELEGRAM",
+          "name": "Назначить свой доступ"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "7802722a-919d-5fe4-8c2e-e3d2f9c16f32",
+      "name": "10 Статус уведомления",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2160,
+        -280
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH changed AS (UPDATE auto01.requests SET notified=$2,\nstate=CASE WHEN $2 THEN 'complete' ELSE 'notification_failed' END, updated_at=now()\nWHERE request_id=$1 RETURNING *), logged AS (INSERT INTO auto01.events(request_id,event)\nSELECT request_id,CASE WHEN notified THEN 'notification_sent' ELSE 'notification_failed' END FROM changed), audit AS (INSERT INTO auto01.audit(execution_id,request_id,event,severity,step,code,details) SELECT $3,request_id,CASE WHEN notified THEN 'notification_sent' ELSE 'notification_failed' END,CASE WHEN notified THEN 'INFO' ELSE 'WARN' END,'notification',CASE WHEN notified THEN 'ok' ELSE 'delivery_not_confirmed' END,jsonb_build_object('message_id',$4::bigint) FROM changed) SELECT true AS ok,200 AS code,request_id,state,deal_id,notified FROM changed;",
+        "options": {
+          "queryReplacement": "={{ [$('08 Сохраняем номер сделки').item.json.request_id,!!($json.ok && $json.result?.message_id),String($execution.id),$json.result?.message_id||null] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_POSTGRES",
+          "name": "Назначить свой доступ"
+        }
+      }
+    },
+    {
+      "id": "47f08548-3b70-5e8c-a307-a97abade3a69",
+      "name": "11 Ответ успешной заявке",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2400,
+        -280
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({...$json, formSubmittedText: $json.state === 'complete' && $json.ok ? ('Заявка '+$json.request_id+' обработана. Номер сделки: '+$json.deal_id) : $json.state === 'processing' && $json.ok ? 'Заявка уже принята и ещё обрабатывается. Повторно отправлять её не нужно.' : $json.state === 'crm_review' || $json.state === 'notification_failed' ? 'Заявка сохранена. Требуется проверка менеджера. Повторное создание сделки не запускается.' : $json.code === 409 ? 'Этот номер обращения уже использован с другим содержимым. Проверьте данные.' : ('Проверьте поля формы: '+($json.errors||['Не удалось завершить обработку']).join('; '))}) }}",
+        "options": {
+          "responseCode": "={{ $json.code || 200 }}"
+        }
+      }
+    },
+    {
+      "id": "8b5eef34-d6fd-519c-aa63-1de7317c59e7",
+      "name": "CRM требует проверки",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1680,
+        60
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH changed AS (UPDATE auto01.requests SET state='crm_review',error=$2,updated_at=now()\nWHERE request_id=$1 RETURNING *), logged AS (INSERT INTO auto01.events(request_id,event)\nSELECT request_id,'crm_review' FROM changed), audit AS (INSERT INTO auto01.audit(execution_id,request_id,event,severity,step,code,details) SELECT $3,request_id,'crm_review','ERROR','crm',error,'{}'::jsonb FROM changed) SELECT false AS ok,503 AS code,request_id,state,error FROM changed;",
+        "options": {
+          "queryReplacement": "={{ [$('04 Атомарная защита от дублей').item.json.request_id,['access_denied','upstream_http','upstream_unavailable','upstream_api_error','invalid_credential','ambiguous_create','duplicate_requires_review','invalid_upstream_response','scope_guard','demo_email_required'].includes($json.error)?$json.error:'transport_error',String($execution.id)] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_POSTGRES",
+          "name": "Назначить свой доступ"
+        }
+      }
+    },
+    {
+      "id": "7723d68e-e10d-5c84-855e-37a69bf99b03",
+      "name": "Сообщить о сбое CRM",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1920,
+        60
+      ],
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{ 'LeadFlow: CRM требует проверки.\\nЗаявка: '+$json.request_id+'\\nПричина: '+$json.error+'\\nАвтоматический повтор создания отключён. Проверьте воронку 17 и журнал n8n.' }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "CONFIGURE_TELEGRAM",
+          "name": "Назначить свой доступ"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "19074f7a-e805-51e1-9f84-9132b78241f6",
+      "name": "Вернуть результат сбоя",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2160,
+        60
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_POSTGRES",
+          "name": "Назначить свой доступ"
+        }
+      },
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO auto01.audit(execution_id,request_id,event,severity,step,code,details)\nVALUES($1,$2,CASE WHEN $3 THEN 'alert_sent' ELSE 'alert_failed' END,CASE WHEN $3 THEN 'INFO' ELSE 'ERROR' END,\n'alert',CASE WHEN $3 THEN 'ok' ELSE 'delivery_not_confirmed' END,jsonb_build_object('message_id',$4::bigint))\nRETURNING false AS ok,503 AS code,request_id,'crm_review'::text AS state,$5::text AS error;",
+        "options": {
+          "queryReplacement": "={{ [String($execution.id),$('CRM требует проверки').item.json.request_id,!!($json.ok && $json.result?.message_id),$json.result?.message_id||null,$('CRM требует проверки').item.json.error] }}"
+        }
+      }
+    },
+    {
+      "id": "e1e139c6-c436-5446-9464-383772903bd6",
+      "name": "Ответ при сбое CRM",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2400,
+        60
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({...$json, formSubmittedText: $json.state === 'complete' && $json.ok ? ('Заявка '+$json.request_id+' обработана. Номер сделки: '+$json.deal_id) : $json.state === 'processing' && $json.ok ? 'Заявка уже принята и ещё обрабатывается. Повторно отправлять её не нужно.' : $json.state === 'crm_review' || $json.state === 'notification_failed' ? 'Заявка сохранена. Требуется проверка менеджера. Повторное создание сделки не запускается.' : $json.code === 409 ? 'Этот номер обращения уже использован с другим содержимым. Проверьте данные.' : ('Проверьте поля формы: '+($json.errors||['Не удалось завершить обработку']).join('; '))}) }}",
+        "options": {
+          "responseCode": "={{ $json.code || 200 }}"
+        }
+      }
+    },
+    {
+      "id": "104f8d40-7d74-5aeb-bbdc-2a5947b9b22a",
+      "name": "Как работает проект",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -500
+      ],
+      "parameters": {
+        "content": "## LeadFlow · Приём заявок\nКонтур приёмки. Только синтетические данные @example.com.\n\nФорма или API → валидация → атомарная защита от дублей → CRM → уведомление → журнал.\n\nAPI защищён ключом. Логи содержат execution_id, request_id и коды событий, без текста обращения. Полные данные новых запусков n8n не сохраняются.\n\nНазначение CRM и номер воронки фиксированы. Неопределённый результат требует сверки. Рабочие ресурсы портала не изменять.",
+        "height": 350,
+        "width": 620
+      }
+    },
+    {
+      "id": "8dddd005-3816-51c1-8527-b4318e8fd206",
+      "name": "Учебная веб-форма",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "path": "auto01-leadflow-demo",
+        "formTitle": "LeadFlow · Проверка заявки",
+        "formDescription": "Пилотный контур для приёмки. Вводите только синтетические данные и адреса @example.com. При повторной отправке сохраните номер обращения.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Номер обращения",
+              "fieldType": "text",
+              "placeholder": "demo-20261107-001",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Имя",
+              "fieldType": "text",
+              "placeholder": "Тестовая Анна",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Электронная почта",
+              "fieldType": "email",
+              "placeholder": "anna@example.com",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Сообщение",
+              "fieldType": "textarea",
+              "placeholder": "Хочу узнать об учебной автоматизации",
+              "requiredField": true
+            }
+          ]
+        },
+        "responseMode": "responseNode",
+        "options": {
+          "buttonLabel": "Отправить заявку",
+          "appendAttribution": false
+        }
+      },
+      "webhookId": "auto01-leadflow-demo"
+    },
+    {
+      "id": "a8dcf36f-7c17-5408-9896-fa15077fb6c2",
+      "name": "Поля веб-формы",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        200
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{request_id:$json['Номер обращения'],name:$json['Имя'],email:$json['Электронная почта'],message:$json['Сообщение'],source:'Учебная форма',demo:true}}];"
+      }
+    }
+  ],
+  "connections": {
+    "01 Входящая заявка": {
+      "main": [
+        [
+          {
+            "node": "02 Проверка полей",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 Проверка полей": {
+      "main": [
+        [
+          {
+            "node": "03 Заявка корректна",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "03 Заявка корректна": {
+      "main": [
+        [
+          {
+            "node": "04 Атомарная защита от дублей",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ошибка в форме",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ошибка в форме": {
+      "main": [
+        [
+          {
+            "node": "Ответ 422",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "04 Атомарная защита от дублей": {
+      "main": [
+        [
+          {
+            "node": "05 Обрабатываем впервые",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "05 Обрабатываем впервые": {
+      "main": [
+        [
+          {
+            "node": "06 Сделка только в воронке 17",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Повтор или конфликт",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Повтор или конфликт": {
+      "main": [
+        [
+          {
+            "node": "Ответ повторной заявке",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "06 Сделка только в воронке 17": {
+      "main": [
+        [
+          {
+            "node": "07 CRM подтвердила сделку",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "07 CRM подтвердила сделку": {
+      "main": [
+        [
+          {
+            "node": "08 Сохраняем номер сделки",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CRM требует проверки",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "08 Сохраняем номер сделки": {
+      "main": [
+        [
+          {
+            "node": "09 Уведомление Елене",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "09 Уведомление Елене": {
+      "main": [
+        [
+          {
+            "node": "10 Статус уведомления",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10 Статус уведомления": {
+      "main": [
+        [
+          {
+            "node": "11 Ответ успешной заявке",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM требует проверки": {
+      "main": [
+        [
+          {
+            "node": "Сообщить о сбое CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сообщить о сбое CRM": {
+      "main": [
+        [
+          {
+            "node": "Вернуть результат сбоя",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Вернуть результат сбоя": {
+      "main": [
+        [
+          {
+            "node": "Ответ при сбое CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Учебная веб-форма": {
+      "main": [
+        [
+          {
+            "node": "Поля веб-формы",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Поля веб-формы": {
+      "main": [
+        [
+          {
+            "node": "02 Проверка полей",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Berlin",
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false,
+    "errorWorkflow": "auto01Errors01"
+  },
+  "staticData": null,
+  "nodeGroups": [],
+  "sourceWorkflowId": null,
+  "versionMetadata": {
+    "name": "v1.1 · API auth и журнал событий",
+    "description": ""
+  }
+}

@@ -1,0 +1,340 @@
+[
+  {
+    "id": 1,
+    "created_at": "2026-11-07T09:05:16.463635+00:00",
+    "execution_id": "131",
+    "request_id": "demo-accept-1794042316",
+    "event": "request_accepted",
+    "severity": "INFO",
+    "step": "claim",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 2,
+    "created_at": "2026-11-07T09:05:17.245793+00:00",
+    "execution_id": "131",
+    "request_id": "demo-accept-1794042316",
+    "event": "crm_created",
+    "severity": "INFO",
+    "step": "crm",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 3,
+    "created_at": "2026-11-07T09:05:17.530198+00:00",
+    "execution_id": "131",
+    "request_id": "demo-accept-1794042316",
+    "event": "notification_sent",
+    "severity": "INFO",
+    "step": "notification",
+    "code": "ok",
+    "details": {
+      "message_id": 171
+    }
+  },
+  {
+    "id": 4,
+    "created_at": "2026-11-07T09:05:17.788848+00:00",
+    "execution_id": "132",
+    "request_id": "demo-accept-1794042316",
+    "event": "duplicate_received",
+    "severity": "INFO",
+    "step": "claim",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 5,
+    "created_at": "2026-11-07T09:05:18.132908+00:00",
+    "execution_id": "133",
+    "request_id": "demo-accept-1794042316",
+    "event": "request_conflict",
+    "severity": "WARN",
+    "step": "claim",
+    "code": "request_id_conflict",
+    "details": {}
+  },
+  {
+    "id": 6,
+    "created_at": "2026-11-07T09:05:18.321613+00:00",
+    "execution_id": "134",
+    "request_id": "demo-accept-1794042316-email",
+    "event": "validation_rejected",
+    "severity": "WARN",
+    "step": "validation",
+    "code": "invalid_fields",
+    "details": {}
+  },
+  {
+    "id": 7,
+    "created_at": "2026-11-07T09:05:18.472684+00:00",
+    "execution_id": "135",
+    "request_id": "demo-accept-1794042316-long",
+    "event": "validation_rejected",
+    "severity": "WARN",
+    "step": "validation",
+    "code": "invalid_fields",
+    "details": {}
+  },
+  {
+    "id": 8,
+    "created_at": "2026-11-07T09:05:18.627367+00:00",
+    "execution_id": "136",
+    "request_id": "demo-accept-1794042316-demo",
+    "event": "validation_rejected",
+    "severity": "WARN",
+    "step": "validation",
+    "code": "invalid_fields",
+    "details": {}
+  },
+  {
+    "id": 9,
+    "created_at": "2026-11-07T09:05:18.9778+00:00",
+    "execution_id": "137",
+    "request_id": "demo-accept-1794042316-parallel",
+    "event": "request_accepted",
+    "severity": "INFO",
+    "step": "claim",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 10,
+    "created_at": "2026-11-07T09:05:19.069749+00:00",
+    "execution_id": "139",
+    "request_id": "demo-accept-1794042316-parallel",
+    "event": "duplicate_received",
+    "severity": "INFO",
+    "step": "claim",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 11,
+    "created_at": "2026-11-07T09:05:19.16882+00:00",
+    "execution_id": "138",
+    "request_id": "demo-accept-1794042316-parallel",
+    "event": "duplicate_received",
+    "severity": "INFO",
+    "step": "claim",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 12,
+    "created_at": "2026-11-07T09:05:19.197387+00:00",
+    "execution_id": "140",
+    "request_id": "demo-accept-1794042316-parallel",
+    "event": "duplicate_received",
+    "severity": "INFO",
+    "step": "claim",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 13,
+    "created_at": "2026-11-07T09:05:19.223569+00:00",
+    "execution_id": "141",
+    "request_id": "demo-accept-1794042316-parallel",
+    "event": "duplicate_received",
+    "severity": "INFO",
+    "step": "claim",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 14,
+    "created_at": "2026-11-07T09:05:19.412097+00:00",
+    "execution_id": "137",
+    "request_id": "demo-accept-1794042316-parallel",
+    "event": "crm_created",
+    "severity": "INFO",
+    "step": "crm",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 15,
+    "created_at": "2026-11-07T09:05:19.553685+00:00",
+    "execution_id": "137",
+    "request_id": "demo-accept-1794042316-parallel",
+    "event": "notification_sent",
+    "severity": "INFO",
+    "step": "notification",
+    "code": "ok",
+    "details": {
+      "message_id": 172
+    }
+  },
+  {
+    "id": 16,
+    "created_at": "2026-11-07T09:06:17.941125+00:00",
+    "execution_id": "142",
+    "request_id": "demo-sec-1794042377",
+    "event": "request_accepted",
+    "severity": "INFO",
+    "step": "claim",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 17,
+    "created_at": "2026-11-07T09:06:18.346568+00:00",
+    "execution_id": "142",
+    "request_id": "demo-sec-1794042377",
+    "event": "crm_created",
+    "severity": "INFO",
+    "step": "crm",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 18,
+    "created_at": "2026-11-07T09:06:18.553438+00:00",
+    "execution_id": "142",
+    "request_id": "demo-sec-1794042377",
+    "event": "notification_sent",
+    "severity": "INFO",
+    "step": "notification",
+    "code": "ok",
+    "details": {
+      "message_id": 173
+    }
+  },
+  {
+    "id": 19,
+    "created_at": "2026-11-07T09:06:43.979079+00:00",
+    "execution_id": "144",
+    "request_id": "demo-fault-1794042401",
+    "event": "request_accepted",
+    "severity": "INFO",
+    "step": "claim",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 20,
+    "created_at": "2026-11-07T09:06:49.034735+00:00",
+    "execution_id": "144",
+    "request_id": "demo-fault-1794042401",
+    "event": "crm_review",
+    "severity": "ERROR",
+    "step": "crm",
+    "code": "transport_error",
+    "details": {}
+  },
+  {
+    "id": 21,
+    "created_at": "2026-11-07T09:06:49.150678+00:00",
+    "execution_id": "144",
+    "request_id": "demo-fault-1794042401",
+    "event": "alert_sent",
+    "severity": "INFO",
+    "step": "alert",
+    "code": "ok",
+    "details": {
+      "message_id": 174
+    }
+  },
+  {
+    "id": 22,
+    "created_at": "2026-11-07T09:06:49.720501+00:00",
+    "execution_id": "145",
+    "request_id": "demo-fault-1794042401",
+    "event": "duplicate_received",
+    "severity": "INFO",
+    "step": "claim",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 23,
+    "created_at": "2026-11-07T09:11:40.653968+00:00",
+    "execution_id": "146",
+    "request_id": "demo-sec-1794042377",
+    "event": "duplicate_received",
+    "severity": "INFO",
+    "step": "claim",
+    "code": "ok",
+    "details": {}
+  },
+  {
+    "id": 24,
+    "created_at": "2026-11-07T09:11:41.333366+00:00",
+    "execution_id": "147",
+    "request_id": null,
+    "event": "unhandled_error",
+    "severity": "ERROR",
+    "step": "Контролируемая ошибка",
+    "code": "workflow_failed",
+    "details": {
+      "workflow_id": "auto01ProbeError1"
+    }
+  },
+  {
+    "id": 25,
+    "created_at": "2026-11-07T09:11:41.470955+00:00",
+    "execution_id": "147",
+    "request_id": null,
+    "event": "alert_sent",
+    "severity": "INFO",
+    "step": "alert",
+    "code": "ok",
+    "details": {
+      "message_id": 175
+    }
+  },
+  {
+    "id": 26,
+    "created_at": "2026-11-07T09:15:00.054697+00:00",
+    "execution_id": "149",
+    "request_id": null,
+    "event": "report_sent",
+    "severity": "INFO",
+    "step": "report",
+    "code": "ok",
+    "details": {
+      "metrics": {
+        "total": 12,
+        "created": 9,
+        "complete": 9,
+        "crm_review": 3,
+        "notification_failed": 0
+      },
+      "message_id": 176
+    }
+  },
+  {
+    "id": 27,
+    "created_at": "2026-11-07T09:15:02.350793+00:00",
+    "execution_id": "150",
+    "request_id": null,
+    "event": "report_sent",
+    "severity": "INFO",
+    "step": "report",
+    "code": "ok",
+    "details": {
+      "metrics": {
+        "total": 12,
+        "created": 9,
+        "complete": 9,
+        "crm_review": 3,
+        "notification_failed": 0
+      },
+      "message_id": 177
+    }
+  },
+  {
+    "id": 28,
+    "created_at": "2026-11-07T09:15:42.236195+00:00",
+    "execution_id": "151",
+    "request_id": "demo-ui-20261107-001",
+    "event": "duplicate_received",
+    "severity": "INFO",
+    "step": "claim",
+    "code": "ok",
+    "details": {}
+  }
+]

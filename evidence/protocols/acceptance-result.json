@@ -1,0 +1,237 @@
+{
+  "run": "demo-accept-1794042316",
+  "passed": true,
+  "tests": [
+    {
+      "test": "Нормальная заявка",
+      "passed": true,
+      "response": {
+        "http": 200,
+        "body": {
+          "ok": true,
+          "code": 200,
+          "request_id": "demo-accept-1794042316",
+          "state": "complete",
+          "deal_id": "3565",
+          "notified": true,
+          "formSubmittedText": "Заявка demo-accept-1794042316 обработана. Номер сделки: 3565"
+        }
+      }
+    },
+    {
+      "test": "Повтор без новой сделки",
+      "passed": true,
+      "response": {
+        "http": 200,
+        "body": {
+          "ok": true,
+          "code": 200,
+          "duplicate": true,
+          "request_id": "demo-accept-1794042316",
+          "state": "complete",
+          "deal_id": "3565",
+          "error": null,
+          "formSubmittedText": "Заявка demo-accept-1794042316 обработана. Номер сделки: 3565"
+        }
+      }
+    },
+    {
+      "test": "Конфликт номера",
+      "passed": true,
+      "response": {
+        "http": 409,
+        "body": {
+          "ok": false,
+          "code": 409,
+          "duplicate": false,
+          "request_id": "demo-accept-1794042316",
+          "state": "complete",
+          "deal_id": "3565",
+          "error": "request_id_conflict",
+          "formSubmittedText": "Этот номер обращения уже использован с другим содержимым. Проверьте данные."
+        }
+      }
+    },
+    {
+      "test": "Запрет реальной почты",
+      "passed": true,
+      "response": {
+        "http": 422,
+        "body": {
+          "ok": false,
+          "code": 422,
+          "errors": [
+            "Почта: только вымышленный адрес @example.com"
+          ],
+          "formSubmittedText": "Проверьте поля формы: Почта: только вымышленный адрес @example.com"
+        }
+      }
+    },
+    {
+      "test": "Слишком длинный текст",
+      "passed": true,
+      "response": {
+        "http": 422,
+        "body": {
+          "ok": false,
+          "code": 422,
+          "errors": [
+            "Сообщение: 5–2000 символов"
+          ],
+          "formSubmittedText": "Проверьте поля формы: Сообщение: 5–2000 символов"
+        }
+      }
+    },
+    {
+      "test": "Неучебный режим",
+      "passed": true,
+      "response": {
+        "http": 422,
+        "body": {
+          "ok": false,
+          "code": 422,
+          "errors": [
+            "Разрешён только учебный режим"
+          ],
+          "formSubmittedText": "Проверьте поля формы: Разрешён только учебный режим"
+        }
+      }
+    },
+    {
+      "test": "5 одновременных повторов",
+      "passed": true,
+      "response": [
+        {
+          "http": 200,
+          "body": {
+            "ok": true,
+            "code": 200,
+            "request_id": "demo-accept-1794042316-parallel",
+            "state": "complete",
+            "deal_id": "3567",
+            "notified": true,
+            "formSubmittedText": "Заявка demo-accept-1794042316-parallel обработана. Номер сделки: 3567"
+          }
+        },
+        {
+          "http": 200,
+          "body": {
+            "ok": true,
+            "code": 200,
+            "duplicate": true,
+            "request_id": "demo-accept-1794042316-parallel",
+            "state": "processing",
+            "deal_id": null,
+            "error": null,
+            "formSubmittedText": "Заявка уже принята и ещё обрабатывается. Повторно отправлять её не нужно."
+          }
+        },
+        {
+          "http": 200,
+          "body": {
+            "ok": true,
+            "code": 200,
+            "duplicate": true,
+            "request_id": "demo-accept-1794042316-parallel",
+            "state": "processing",
+            "deal_id": null,
+            "error": null,
+            "formSubmittedText": "Заявка уже принята и ещё обрабатывается. Повторно отправлять её не нужно."
+          }
+        },
+        {
+          "http": 200,
+          "body": {
+            "ok": true,
+            "code": 200,
+            "duplicate": true,
+            "request_id": "demo-accept-1794042316-parallel",
+            "state": "processing",
+            "deal_id": null,
+            "error": null,
+            "formSubmittedText": "Заявка уже принята и ещё обрабатывается. Повторно отправлять её не нужно."
+          }
+        },
+        {
+          "http": 200,
+          "body": {
+            "ok": true,
+            "code": 200,
+            "duplicate": true,
+            "request_id": "demo-accept-1794042316-parallel",
+            "state": "processing",
+            "deal_id": null,
+            "error": null,
+            "formSubmittedText": "Заявка уже принята и ещё обрабатывается. Повторно отправлять её не нужно."
+          }
+        }
+      ]
+    },
+    {
+      "test": "Одна запись при одновременной отправке",
+      "passed": true,
+      "response": [
+        {
+          "request_id": "demo-smoke-1794036355",
+          "state": "complete",
+          "deal_id": 3553,
+          "notified": true
+        },
+        {
+          "request_id": "demo-accept-1794036584",
+          "state": "complete",
+          "deal_id": 3555,
+          "notified": true
+        },
+        {
+          "request_id": "demo-accept-1794036584-parallel",
+          "state": "complete",
+          "deal_id": 3557,
+          "notified": true
+        },
+        {
+          "request_id": "demo-ui-20261107-001",
+          "state": "complete",
+          "deal_id": 3559,
+          "notified": true
+        },
+        {
+          "request_id": "demo-fault-1794037344",
+          "state": "crm_review",
+          "deal_id": null,
+          "notified": false
+        },
+        {
+          "request_id": "demo-accept-1794037957",
+          "state": "complete",
+          "deal_id": 3561,
+          "notified": true
+        },
+        {
+          "request_id": "demo-accept-1794037957-parallel",
+          "state": "complete",
+          "deal_id": 3563,
+          "notified": true
+        },
+        {
+          "request_id": "demo-fault-1794037964",
+          "state": "crm_review",
+          "deal_id": null,
+          "notified": false
+        },
+        {
+          "request_id": "demo-accept-1794042316",
+          "state": "complete",
+          "deal_id": 3565,
+          "notified": true
+        },
+        {
+          "request_id": "demo-accept-1794042316-parallel",
+          "state": "complete",
+          "deal_id": 3567,
+          "notified": true
+        }
+      ]
+    }
+  ]
+}
